@@ -12,7 +12,7 @@ from datetime import datetime
 import json  # load
 import sys  # argv, exit
 
-import sim_motor
+from . import sim_motor
 
 
 VERBOSE = True
