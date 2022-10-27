@@ -12,7 +12,7 @@ from datetime import datetime
 import json  # load
 import sys  # argv, exit
 
-from . import sim_motor
+from .sim_motor import vMotor  # for type hinting
 
 
 VERBOSE = True
@@ -47,7 +47,7 @@ VERSION = "Version: sim_GPIO v'HopefullyWorking'"
 _mode = None  # BOARD or BCM
 _ioModes: dict[int, str] = {}
 _board: dict[int, bool] = {}  # channel: (io_mode, state)
-_pinToMotor: dict[int, list[sim_motor.vMotor]] = {}  # channel: (vMotors, ...)
+_pinToMotor: dict[int, list[vMotor]] = {}  # channel: (vMotors, ...)
 
 #########################################
 
@@ -86,7 +86,7 @@ for path in PIN_JSON_PATHS:
         print(f"JSON path '{path}' could not be resolved and was skipped.")
 
 
-def _plugIn(motor: sim_motor.vMotor, channel: int):
+def _plugIn(motor: vMotor, channel: int):
     if motor not in (mlist := _pinToMotor[channel]):
         mlist.append(motor)
         if VERBOSE:
@@ -122,7 +122,7 @@ def _freeChannel(channel: int):
         vprint(f"Freeing pin {channel}")
 
 # Utility fuctions
-def vPlugIn(motor: sim_motor.vMotor, channel: int | list[int] | tuple[int]):
+def vPlugIn(motor: vMotor, channel: int | list[int] | tuple[int]):
     '''"Plug" your vMotor into a board pin. This needs to be done for the vMotor to work'''
     try:
         if isinstance(channel, (list, tuple)):
