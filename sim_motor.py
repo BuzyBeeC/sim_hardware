@@ -2,6 +2,13 @@
 
 A lot of code is shared with motor_control.py's MotorController for similar behavior
 '''
+from time import sleep
+
+import sim_hardware.sim_GPIO as GPIO
+
+VERBOSE = True
+
+DELAY = 0.01  # Delay between GPIO.output() calls in seconds
 MSTEP_PIN_STATES = {
     (False, False): 1,
     (True, False): 2,
@@ -103,6 +110,51 @@ class vMotor:
                                                  newMode)
             self._msteps = int((self._msteps * newMode) / self._mstepMode)  # convert to new mode units
             self._mstepMode = newMode
+
+    def rotate(self, targDeg: float, ccLimit: float = None, cwLimit: float = None, useGearOut:bool = True) -> bool:
+        '''Steps a motor to the target degree position of output gear or motor (see `useGearOut`)
+        
+        **This is NOT for real motors. Use the MotorController class for controlling real motors.**
+
+        `targDeg`: target degree position (0 <= targDeg < 360)
+        `ccLimit`: inclusive counterclockwise limit in degrees. defaults to None
+        `cwLimit`: inclusive clockwise limit in degrees. defaults to None
+        `useGearOut`: whether or not targDeg is in terms of output gear position. defaults to True
+        Note: When a limit is None, it will be limitless in that direction.
+        Returns True if motor moves, false otherwise.
+        '''
+        targDeg %= 360
+        relMsteps = _closestLoopMovement(self._msteps, self.degreesToMsteps(targDeg, useGearOut),
+                                         self.STEPS_PER_REV * self._mstepMode * self._gearRatio)
+
+        if not relMsteps:
+            return False # no movement
+
+        if VERBOSE:
+            print(f"{self.name}: Requested rotation to {targDeg} degrees")
+
+        isCCW = relMsteps < 0
+
+        if VERBOSE:
+            print(f"{self.name}: Rotating {relMsteps} steps ({'CC' if isCCW else 'CW'})")
+
+        GPIO.output(self.PINS["dir"], isCCW)
+        for _ in range(abs(relMsteps)):
+            if ((isCCW and ((ccLimit is None) or not ((self._msteps - 1) <= self.degreesToMsteps(ccLimit, useGearOut))))
+                or (not isCCW and ((cwLimit is None) or not ((self._msteps + 1) >= self.degreesToMsteps(cwLimit, useGearOut))))):
+                GPIO.output(self.PINS["step"], GPIO.HIGH)
+                sleep(DELAY)
+                GPIO.output(self.PINS["step"], GPIO.LOW)
+                sleep(DELAY)
+            else:
+                print(f"{self.name}: Limit reached. Rotation failed!")
+                return False  # no movement
+
+        if VERBOSE:
+            print(f"{self.name}: Rotation successful!\n")
+            self.debugStatus()
+
+        return True  # successful movement
 
     def debugSettings(self):
         '''Displays vMotor settings'''

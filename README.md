@@ -1,3 +1,3 @@
 # sim_hardware
 
-Simulated hardware for developing and testing https://github.com/BuzyBeeC/Open-Star-Tracker
+A package containing simulated hardware for developing and testing https://github.com/BuzyBeeC/Open-Star-Tracker

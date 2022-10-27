@@ -12,7 +12,7 @@ from datetime import datetime
 import json  # load
 import sys  # argv, exit
 
-from .sim_motor import vMotor  # for type hinting
+from sim_hardware.sim_motor import vMotor  # for type hinting
 
 
 VERBOSE = True
