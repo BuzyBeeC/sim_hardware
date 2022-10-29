@@ -1,4 +1,6 @@
-'''A simulated stepper motor/MotorController for testing purposes
+'''OBSOLETE; no longer maintained
+
+A simulated stepper motor/MotorController for testing purposes
 
 A lot of code is shared with motor_control.py's MotorController for similar behavior
 '''
