@@ -96,7 +96,7 @@ def _plugIn(motor: vMotor, channel: int):
 
 def _setIoMode(channel: int, ioMode: str):
     if ioMode == IN:
-        raise Exception("Error: Input pins are not simulated in this module!")
+        raise NotImplementedError("Error: Input pins are not simulated in this module!")
     _ioModes[channel] = ioMode
     if VERBOSE:
         vprint(f"Setting pin {channel} to {ioMode} mode")
@@ -106,7 +106,7 @@ def _setState(channel: int, state: bool):
     if ioMode is None:
         raise Exception(f"Error: ioMode for pin {channel} is not set")
     elif ioMode == IN:
-        raise Exception("Error: Input pins are not simulated in this module!")
+        raise NotImplementedError("Error: Input pins are not simulated in this module!")
     _board[channel] = state
     if ULTRA_VERBOSE:
         vprint(f"Setting pin {channel} ({ioMode}) to {'HIGH' if state else 'LOW'}")
@@ -131,7 +131,7 @@ def vPlugIn(motor: vMotor, channel: int | list[int] | tuple[int]):
         elif isinstance(channel, int):
             _plugIn(motor, c)
         else:
-            raise ValueError("Error: channel should be int or list/tuple of ints")
+            raise TypeError("Error: channel should be int or list/tuple of ints")
     except KeyError as exc:
         raise KeyError(f"Error: One of the given channel(s) {channel} does not exist.") from exc
 
@@ -189,7 +189,7 @@ def setup(channel: int | list[int] | tuple[int], ioMode: str | list[str] | tuple
             _setIoMode(channel, ioMode)
 
         else:
-            raise ValueError("Error: channel and ioMode much be matching int-str pair(s) in single value, list, or tuple")
+            raise TypeError("Error: channel and ioMode much be matching int-str pair(s) in single value, list, or tuple")
     except KeyError as exc:
         raise KeyError(f"Error: One of the given channel(s) {channel} does not exist.") from exc
 
@@ -212,7 +212,7 @@ def output(channel: int | list[int] | tuple[int], state: bool | list[bool] | tup
             _setState(channel, state)
 
         else:
-            raise ValueError("Error: channel and state much be matching int-bool pair(s) in single value, list, or tuple")
+            raise TypeError("Error: channel and state much be matching int-bool pair(s) in single value, list, or tuple")
     except KeyError as exc:
         raise KeyError(f"Error: One of the given channel(s) {channel} does not exist.") from exc
 

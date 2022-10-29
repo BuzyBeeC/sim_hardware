@@ -2,9 +2,10 @@
 
 A lot of code is shared with motor_control.py's MotorController for similar behavior
 '''
-from time import sleep
+import time
 
 import sim_hardware.sim_GPIO as GPIO
+
 
 VERBOSE = True
 
@@ -130,24 +131,22 @@ class vMotor:
         if not relMsteps:
             return False # no movement
 
+        isCC = relMsteps < 0
+
         if VERBOSE:
             print(f"{self.name}: Requested rotation to {targDeg} degrees")
+            print(f"{self.name}: Rotating {relMsteps} steps ({'CC' if isCC else 'CW'})")
 
-        isCCW = relMsteps < 0
-
-        if VERBOSE:
-            print(f"{self.name}: Rotating {relMsteps} steps ({'CC' if isCCW else 'CW'})")
-
-        GPIO.output(self.PINS["dir"], isCCW)
+        GPIO.output(self.PINS["dir"], isCC)
         for _ in range(abs(relMsteps)):
-            if ((isCCW and ((ccLimit is None) or not ((self._msteps - 1) <= self.degreesToMsteps(ccLimit, useGearOut))))
-                or (not isCCW and ((cwLimit is None) or not ((self._msteps + 1) >= self.degreesToMsteps(cwLimit, useGearOut))))):
+            if ((isCC and ((ccLimit is None) or not ((self._msteps - 1) <= self.degreesToMsteps(ccLimit, useGearOut))))
+                    or (not isCC and ((cwLimit is None) or not ((self._msteps + 1) >= self.degreesToMsteps(cwLimit, useGearOut))))):
                 GPIO.output(self.PINS["step"], GPIO.HIGH)
-                sleep(DELAY)
+                time.sleep(DELAY)
                 GPIO.output(self.PINS["step"], GPIO.LOW)
-                sleep(DELAY)
+                time.sleep(DELAY)
             else:
-                print(f"{self.name}: Limit reached. Rotation failed!")
+                print(f"{self.name}: Limit reached. Rotation failed!\n")
                 return False  # no movement
 
         if VERBOSE:
