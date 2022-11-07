@@ -8,9 +8,11 @@ based on
 https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/
 https://sourceforge.net/p/raspberry-gpio-python/code/ci/default/tree/source/py_gpio.c#l331
 '''
+import asyncio
 from datetime import datetime
 import json  # load
 import sys  # argv, exit
+from time import perf_counter
 
 from sim_hardware.sim_motor import vMotor  # for type hinting
 
@@ -122,8 +124,30 @@ def _freeChannel(channel: int):
         vprint(f"Freeing pin {channel}")
 
 # Utility fuctions
+async def hiResASleep(delay: float):
+    '''Async sleep with the resolution of time.perf_counter()
+
+    Returns time elapsed'''
+    start = perf_counter()
+    while (elapsed:=(perf_counter() - start)) < delay:
+        await asyncio.sleep(0)
+    return elapsed
+
+
+def printBoard():
+    '''Prints the board's state'''
+    print(f"Board state [{timestamp()}]:")
+    print("Mode:", _mode)
+    for channel, state in _board.items():
+        print(f"{channel} ({_ioModes[channel]}): {'HIGH' if state else 'LOW'}")
+    print()
+
+
 def vPlugIn(motor: vMotor, channel: int | list[int] | tuple[int]):
-    '''"Plug" your vMotor into a board pin. This needs to be done for the vMotor to work'''
+    '''Obsolete
+
+    "Plug" your vMotor into a board pin. This needs to be done for the vMotor to work
+    '''
     try:
         if isinstance(channel, (list, tuple)):
             for c in channel:
@@ -134,15 +158,6 @@ def vPlugIn(motor: vMotor, channel: int | list[int] | tuple[int]):
             raise TypeError("Error: channel should be int or list/tuple of ints")
     except KeyError as exc:
         raise KeyError(f"Error: One of the given channel(s) {channel} does not exist.") from exc
-
-
-def printBoard():
-    '''Prints the board's state'''
-    print(f"Board state [{timestamp()}]:")
-    print("Mode:", _mode)
-    for channel, state in _board.items():
-        print(f"{channel} ({_ioModes[channel]}): {'HIGH' if state else 'LOW'}")
-    print()
 
 
 #########################################
@@ -171,7 +186,7 @@ def setwarnings(isSet: bool):
 
 def setup(channel: int | list[int] | tuple[int], ioMode: str | list[str] | tuple[str]):
     '''Sets a channel's io mode
-    
+
     Note: Since this module only simulates output it will raise an
     exception when setting a channel to IN mode
     '''
